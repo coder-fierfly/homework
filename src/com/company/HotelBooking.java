@@ -1,14 +1,13 @@
-/*
-В одной системе бронирования отелей вам надо написать один небольшой модуль.
+package com.company;
+
+/* В одной системе бронирования отелей вам надо написать один небольшой модуль.
 Вам дан массив дат бронирования номера в отеле. Элемент массива или одна дата, или период - две даты через дефис.
 Пример:
-['12.09.2020', '14.09.2020-02.10.2020']
+["12.09.2020", "14.09.2020-02.10.2020"]
 Вам надо выяснить можно ли добавить в массив новую введенную дату или период для нового бронирования. Например,
 для указанного выше примера период '01.10.2020-05.10.2020' добавлять нельзя, так как первые два дня уже забронированы.
 В первой строке входных данных содержится информация о дате-времени существующих бронирований, во второй - новая бронь.
-Выведите True, если бронь можно добавить, False - если нельзя.
- */
-package com.company;
+Выведите True, если бронь можно добавить, False - если нельзя.*/
 
 import java.time.LocalDate;
 import java.util.Calendar;
@@ -16,11 +15,13 @@ import java.util.GregorianCalendar;
 import java.util.Scanner;
 
 public class HotelBooking {
+    private static final int THREE = 3;
+
     public static void main(String[] args) {
         Scanner in = new Scanner(System.in);
         String massStr = in.nextLine();
         String bookingDate = in.nextLine();
-        String[] busyDates = massStr.replaceAll("\\[?'*]?( )*", "").split(",");
+        String[] busyDates = massStr.replaceAll("[\\[\\]\"]", "").split(", ");
 
         //с помощью indexNum(далее также используется checkNum) идет проверка
         // даты бронирования на то является ли она периодом дат или единичной датой
@@ -41,29 +42,17 @@ public class HotelBooking {
                 checkNum = busyDates[i].indexOf("-");
                 //если занятая дата период
                 if (checkNum != -1) {
-                    String[] BusyMass = busyDates[i].split("-");
-                    String[] sBuff = BusyMass[0].split("\\.");
-                    int sDay = (Integer.parseInt(sBuff[0]));
-                    int sMonth = (Integer.parseInt(sBuff[1]));
-                    int sYear = Integer.parseInt(sBuff[2]);
-                    Calendar startDate = new GregorianCalendar(sYear, sMonth, sDay);
-                    String[] eBuff = BusyMass[1].split("\\.");
-                    int eDay = (Integer.parseInt(eBuff[0]));
-                    int eMonth = (Integer.parseInt(eBuff[1]));
-                    int eYear = Integer.parseInt(eBuff[2]);
-                    Calendar endDate = new GregorianCalendar(eYear, eMonth, eDay);
+                    String[] busyMass = busyDates[i].split("\\-");
+                    Calendar startDate = strToCalendar(busyMass, 0);
+                    Calendar endDate = strToCalendar(busyMass, 1);
 
-                    if (startDate.before(bookingDayCalendar) && bookingDayCalendar.before(startDate)) {
+                    if (startDate.before(bookingDayCalendar) && bookingDayCalendar.before(endDate)) {
                         System.out.println("False");
                         System.exit(0);
                     }
                     // иначе занятая дата число
                 } else {
-                    String[] busyBuff = busyDates[i].split("\\.");
-                    int busyDay = (Integer.parseInt(busyBuff[0]));
-                    int busyMonth = (Integer.parseInt(busyBuff[1]));
-                    int busyYear = Integer.parseInt(busyBuff[2]);
-                    Calendar busyCalendar = new GregorianCalendar(busyYear, busyMonth, busyDay);
+                    Calendar busyCalendar = strToCalendar(busyDates, i);
                     if (busyCalendar.equals(bookingDayCalendar)) {
                         System.out.println("False");
                         System.exit(0);
@@ -72,64 +61,24 @@ public class HotelBooking {
                 //иначе дата бронирования период
             } else {
                 String[] bookingBuff = bookingDate.split("-");
-                String[] startBookingMass = bookingBuff[0].split("\\.");
-                int stBookDay = (Integer.parseInt(startBookingMass[0]));
-                int stBookMonth = (Integer.parseInt(startBookingMass[1]));
-                int stBookYear = Integer.parseInt(startBookingMass[2]);
-                Calendar startBooking = new GregorianCalendar(stBookYear, stBookMonth, stBookDay); // дата начала брони
-
-                String[] endBookingMass = bookingBuff[1].split("\\.");
-                int endBookDay = (Integer.parseInt(endBookingMass[0]));
-                int endBookMonth = (Integer.parseInt(endBookingMass[1]));
-                int endBookYear = Integer.parseInt(endBookingMass[2]);
-                Calendar endBooking = new GregorianCalendar(endBookYear, endBookMonth, endBookDay); // дата окончания брони
-
-                int checkNum = 0;
+                Calendar startBooking = strToCalendar(bookingBuff, 0); // дата начала брони
+                Calendar endBooking = strToCalendar(bookingBuff, 1); // дата окончания брони
+                int checkNum;
                 checkNum = busyDates[i].indexOf("-");
                 // занятая дата период
                 if (checkNum != -1) {
                     String[] busyMass = busyDates[i].split("\\-");
-                    String[] sBuffBusy = busyMass[0].split("\\.");
-                    int sDayBusy = (Integer.parseInt(sBuffBusy[0]));
-                    int sMonthBusy = Integer.parseInt(sBuffBusy[1]); //возможно -1 не нужна
-                    int sYearBusy = Integer.parseInt(sBuffBusy[2]);
-                    Calendar startBusy = new GregorianCalendar(sYearBusy, sMonthBusy, sDayBusy);
-
-                    String[] eBuffBusy = busyMass[1].split("\\.");
-                    int eDayBusy = (Integer.parseInt(eBuffBusy[0]));
-                    int eMonthBusy = Integer.parseInt(eBuffBusy[1]);
-                    int eYearBusy = Integer.parseInt(eBuffBusy[2]);
-                    Calendar endBusy = new GregorianCalendar(eYearBusy, eMonthBusy, eDayBusy);
-
-                    if ((startBusy.before(startBooking) && startBooking.before(endBusy)) ||
-                            (startBusy.before(endBooking) && endBooking.before(endBusy))) {
+                    Calendar startBusy = strToCalendar(busyMass, 0);
+                    Calendar endBusy = strToCalendar(busyMass, 1);
+                    if ((startBusy.before(startBooking) && startBooking.before(endBusy))
+                            || (startBusy.before(endBooking) && endBooking.before(endBusy))) {
                         System.out.println("False");
                         System.exit(0);
                     }
                     //занятая дата - число
                 } else {
-                    String[] bookingBuffer = bookingDate.split("-");
-                    String[] sBookingDateMass = bookingBuffer[0].split("\\.");
-                    int sBookingDay = (Integer.parseInt(sBookingDateMass[0]));
-                    int sBookingMonth = (Integer.parseInt(sBookingDateMass[1]));
-                    int sBookingYear = Integer.parseInt(sBookingDateMass[2]);
-                    checkDate(sBookingYear, sBookingMonth, sBookingDay);
-                    Calendar sBookingCalendar = new GregorianCalendar(sBookingYear, sBookingMonth, sBookingDay);
-
-                    String[] eBookingDateMass = bookingBuffer[0].split("\\.");
-                    int eBookingDay = (Integer.parseInt(eBookingDateMass[0]));
-                    int eBookingMonth = (Integer.parseInt(eBookingDateMass[1]));
-                    int eBookingYear = Integer.parseInt(eBookingDateMass[2]);
-                    checkDate(eBookingYear, eBookingMonth, eBookingDay);
-                    Calendar eBookingCalendar = new GregorianCalendar(eBookingYear, eBookingMonth, sBookingDay);
-
-                    String[] busyBuff = busyDates[i].split("\\.");
-                    int busyDay = (Integer.parseInt(busyBuff[0]));
-                    int busyMonth = (Integer.parseInt(busyBuff[1]));
-                    int busyYear = Integer.parseInt(busyBuff[2]);
-                    Calendar busyCalendar = new GregorianCalendar(busyYear, busyMonth, busyDay);
-
-                    if (sBookingCalendar.before(busyCalendar) && busyCalendar.before(eBookingCalendar)) {
+                    Calendar busyCalendar = strToCalendar(busyDates, i);
+                    if (startBooking.before(busyCalendar) && busyCalendar.before(endBooking)) {
                         System.out.println("False");
                         System.exit(0);
                     }
@@ -147,5 +96,19 @@ public class HotelBooking {
             System.out.println("Date is not correct");
             System.exit(0);
         }
+    }
+
+    public static Calendar strToCalendar(String[] buff, int index) {
+        String[] sBuff = buff[index].split("\\.");
+        int Day = (Integer.parseInt(sBuff[0]));
+        int Month = (Integer.parseInt(sBuff[1]));
+        int Year = Integer.parseInt(sBuff[2]);
+        checkDate(Year, Month, Day);
+        int[] intMass = new int[THREE];
+        intMass[0] = Year;
+        intMass[1] = Month;
+        intMass[2] = Day;
+        Calendar calendar = new GregorianCalendar(intMass[0], intMass[1], intMass[2]);
+        return calendar;
     }
 }
